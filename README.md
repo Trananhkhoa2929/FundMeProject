@@ -2,7 +2,7 @@
 
 Một ứng dụng Web3 GoFundMe phi tập trung cho phép bạn quyên góp Ethereum cho các tổ chức từ thiện và hoạt động nhân đạo.
 
-![Home Page](gofundme/src/assets/images/sitePreview.png)
+
 
 ## 📋 Mục lục
 
@@ -65,7 +65,7 @@ Trước khi bắt đầu, đảm bảo bạn đã cài đặt:
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/your-username/GoFundMeBlockchain.git
+git clone https://github.com/Trananhkhoa2929/GoFundMeBlockchain.git
 cd GoFundMeBlockchain
 ```
 
