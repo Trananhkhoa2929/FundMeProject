@@ -284,7 +284,7 @@ npx hardhat verify --network sepolia YOUR_CONTRACT_ADDRESS
 - Hiển thị số dư ví realtime
 - Theo dõi thay đổi account/network
 
-![Connect Wallet](gofundme/src/assets/images/sitePreview2.png)
+
 
 ### 💰 Donate ETH
 - Chọn charity/cause để donate
