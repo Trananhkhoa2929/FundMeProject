@@ -1,89 +1,72 @@
-import React, { useState, useMemo } from "react";
-import "../styles/Featured.scss";
-import { MdArrowForwardIos } from "react-icons/md";
-import Modal from "./Modal";
-import { getDonations } from "../utils/utilFunctions";
+import React, { useState, useEffect } from "react";
 import { utils } from "ethers";
+import { getDonations } from "../utils/utilFunctions";
+import Modal from "./Modal";
+import "../styles/Featured.scss";
 
-const Featured = ({ ...props }) => {
-  const [showModal, setShowModal] = useState(false);
-  const [cause, setCause] = useState("");
+const Featured = ({ account }) => {
   const [donations, setDonations] = useState([]);
-  const OtherFeaturedPosts = ({ ...props }) => {
-    return (
-      <div className="otherFeaturedPosts-outer">
-        <div className="otherFeaturedPosts-inner">
-          <div className="other-featured-image" data-image-src={props.dataImg}>
-            <span className="other-urgent">Urgent Cause</span>
-          </div>
-          <div className="details">
-            <p>{props.detailsText}</p>
-            <div style={{ display: "grid" }}>
-              <button
-                className="btn"
-                onClick={() => toggleModalVisibility(props.detailsText)}
-              >
-                {props.btn} <MdArrowForwardIos />
-              </button>
-              {donations.length > 0 && (
-                <span>
-                  Total Donations: {totalCauseDonations(props.detailsText)}
-                  ETH
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const [modalVisibility, setModalVisibility] = useState(false);
+  const [cause, setCause] = useState("");
 
-  useMemo(() => {
-    (async () => {
-      setDonations(await getDonations());
-    })();
+  useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        const allDonations = await getDonations();
+        if (allDonations) {
+          setDonations(allDonations);
+        }
+      } catch (error) {
+        console.error("Error fetching donations:", error);
+      }
+    };
+    fetchDonations();
   }, []);
-  // console.log(donations);
 
-  const toggleModalVisibility = (details) => {
-    setShowModal(!showModal);
-    setCause(details);
+  const toggleModalVisibility = (causeName) => {
+    if (causeName) {
+      setCause(causeName);
+    }
+    setModalVisibility(!modalVisibility);
   };
 
-  //calculate total eth donated to an organization
-  const totalCauseDonations = (cause) => {
-    let sum = 0;
-    const charityDonatedEth = donations.map(
-      (donation) =>
-        donation.charity === cause &&
-        utils.formatEther(parseInt(donation.amount._hex, 16))
-    );
-    const arrOfNum = [];
-    charityDonatedEth.forEach((str) => {
-      arrOfNum.push(Number(str));
+  const totalCauseDonations = () => {
+    if (! donations || donations.length === 0) {
+      return "0.0000";
+    }
+
+    const arrOfNum = donations.map((donation) => {
+      return Number(utils.formatEther(donation.amount));
     });
+
+    let sum = 0;
     for (let i = 0; i < arrOfNum.length; i++) {
       sum += arrOfNum[i];
     }
-    return sum;
+    return sum.toFixed(4);
   };
-
-  totalCauseDonations();
 
   return (
     <>
-      <div className="featured-container">
+      {modalVisibility && (
+        <Modal
+          account={account}
+          toggleModalVisibility={toggleModalVisibility}
+          cause={cause}
+        />
+      )}
+      <div className="featured-container" id="causes">
         <div className="container-div">
           <p>Where you can help</p>
-          <p>Featured Charities</p>
-          <div className="grid-display ">
+          <p>Featured Causes</p>
+          <div className="grid-display">
             <div className="first">
               <div className="first-flex">
                 <span className="urgent">Urgent Cause</span>
                 <div className="featured-image" data-image-src="feat"></div>
                 <div className="first-details-outer">
-                  <div className=" first-details-inner">
-                    <p>How to help: Donate ETH tokens to flood victims</p>
+                  <div className="first-details-inner">
+                    <p>How to help:  Donate ETH tokens to flood victims</p>
                     <p className="hide-text-mobile">
                       Donate to verified fundraisers to help the individuals and
                       families affected by widespread flooding across the world
@@ -95,46 +78,19 @@ const Featured = ({ ...props }) => {
                           toggleModalVisibility("Donating to flood victims")
                         }
                       >
-                        Help Now <MdArrowForwardIos />
+                        Donate Now →
                       </button>
-                      {donations.length > 0 && (
-                        <span>
-                          Total Donations:{" "}
-                          {totalCauseDonations("Donating to flood victims")}
-                          ETH
-                        </span>
-                      )}
+                      <span className="funds">
+                        {totalCauseDonations()} ETH raised
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <OtherFeaturedPosts
-              detailsText="Oak fire relief: How you can help"
-              btn="Donate now"
-              dataImg="one"
-            />
-            <OtherFeaturedPosts
-              detailsText="Helping Orphans all over the globe"
-              btn="Help out"
-              dataImg="two"
-            />
-            <OtherFeaturedPosts
-              detailsText="How one man is preserving hundreds of WWII stories"
-              btn="Donate Tokens"
-              dataImg="three"
-            />
           </div>
         </div>
       </div>
-      {showModal && (
-        <Modal
-          toggleModalVisibility={toggleModalVisibility}
-          cause={cause}
-          account={props.account}
-        />
-      )}
     </>
   );
 };

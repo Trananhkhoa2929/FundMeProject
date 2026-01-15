@@ -2,27 +2,31 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
-
-const GOERLI_URL = process.env.GOERLI_URL;
+const SEPOLIA_URL = process.env. SEPOLIA_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
-/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
-    version: "0.8.9",
+    version:  "0.8.9",
     settings: {
-      optimizer: {
+      optimizer:  {
         enabled: true,
         runs: 200,
       },
     },
   },
   networks: {
-    goerli: {
-      url: GOERLI_URL,
-      accounts: [PRIVATE_KEY],
+    hardhat: {
+      chainId: 1337,
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 1337,
+    },
+    sepolia: {
+      url: SEPOLIA_URL,
+      accounts:  PRIVATE_KEY ?  [PRIVATE_KEY] : [],
+      chainId: 11155111,
     },
   },
 };

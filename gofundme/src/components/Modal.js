@@ -12,7 +12,7 @@ const MyInput = ({ label, ...props }) => {
   const [field, meta] = useField(props);
   return (
     <>
-      <label htmlFor={props.id || props.name}>{label}</label>
+      <label htmlFor={props.id || props. name}>{label}</label>
       <input className="text-input" {...field} {...props} />
       {(meta.touched && meta.error) || (meta.error && meta.value === "") ? (
         <div className="error">{meta.error}</div>
@@ -21,10 +21,10 @@ const MyInput = ({ label, ...props }) => {
   );
 };
 
-const Modal = ({ ...props }) => {
+const Modal = ({ account, toggleModalVisibility, cause }) => {
   const [eth, setEth] = useState(0);
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [ethToUSDT, setEthToUSDT] = useState();
+  const [walletBalance, setWalletBalance] = useState("0.0000");
+  const [ethToUSDT, setEthToUSDT] = useState("0.00");
   const [loading, setLoading] = useState(false);
 
   const setDonation = (val) => {
@@ -32,89 +32,148 @@ const Modal = ({ ...props }) => {
   };
 
   useEffect(() => {
-    (async () => {
-      let newWalletBalance = await getBalance(props.account);
-      setWalletBalance(newWalletBalance);
-    })();
-  }, [props.account]);
+    const fetchBalance = async () => {
+      if (account) {
+        try {
+          const balance = await getBalance(account);
+          setWalletBalance(balance);
+        } catch (error) {
+          console.error("Error fetching balance:", error);
+          setWalletBalance("0.0000");
+        }
+      }
+    };
+    fetchBalance();
+  }, [account]);
 
   useMemo(() => {
-    (async () => {
-      setEthToUSDT(await convertEthToUsdt(eth));
-    })();
+    const fetchUSDValue = async () => {
+      if (eth > 0) {
+        try {
+          const usdValue = await convertEthToUsdt(eth);
+          setEthToUSDT(usdValue);
+        } catch (error) {
+          console.error("Error converting to USD:", error);
+          setEthToUSDT("0.00");
+        }
+      } else {
+        setEthToUSDT("0.00");
+      }
+    };
+    fetchUSDValue();
   }, [eth]);
+
+  const removeModal = () => {
+    toggleModalVisibility();
+  };
+
+  if (!account) {
+    return (
+      <div id="myModal" className="modal">
+        <div className="modal-content">
+          <div className="cancel-balance">
+            <span className="close" onClick={toggleModalVisibility}>
+              &times;
+            </span>
+          </div>
+          <div style={{ padding: "20px", textAlign: "center" }}>
+            <h2>Please Connect Your Wallet</h2>
+            <p>You need to connect MetaMask to make a donation</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="myModal" className="modal">
       <div className="modal-content">
         <div className="cancel-balance">
-          <p>Your Ethereum Balance: {walletBalance}ETH</p>
-          <span className="close" onClick={props.toggleModalVisibility}>
+          <p>Your Ethereum Balance: {walletBalance} ETH</p>
+          <span className="close" onClick={toggleModalVisibility}>
             &times;
           </span>
         </div>
-        {props.account !== null && (
-          <Formik
-            enableReinitialize
-            initialValues={{
-              donorName: "",
-              amountEth: eth,
-              charity: props.cause,
-              balanceEth: walletBalance,
-            }}
-            onSubmit={(values, { setSubmitting, resetForm }) => {
-              setTimeout(() => {
-                delete values.balanceEth;
-                donateEth(values, setLoading);
-                setSubmitting();
-                resetForm();
-              }, 500);
-            }}
-            validationSchema={yupValidation}
-          >
-            <Form className="form-input">
-              <MyInput
-                label="ETH Amount"
-                type="number"
-                placeholder="Input Amount in ETH"
-                onChange={(e) => setDonation(e.target.value)}
-                name="amountEth"
-              />
-              <MyInput
-                type="number"
-                name="balanceEth"
-                style={{ display: "none" }}
-                disabled
-              />
-
-              <label>Your Donation in $, using current ETH Price</label>
-              <input type="number" value={ethToUSDT} disabled />
+        <Formik
+          enableReinitialize
+          initialValues={{
+            donorName: "",
+            amountEth: eth,
+            charity: cause,
+            balanceEth: parseFloat(walletBalance),
+          }}
+          validationSchema={yupValidation(parseFloat(walletBalance))}
+          onSubmit={(values, { setSubmitting, resetForm }) => {
+            donateEth(values, setLoading, removeModal);
+            setSubmitting(false);
+            resetForm();
+          }}
+        >
+          {({ setFieldValue, values }) => (
+            <Form>
+              <div className="form-group">
+                <label>ETH Amount</label>
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  max={walletBalance}
+                  placeholder="0.0"
+                  className="text-input"
+                  value={eth}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setDonation(val);
+                    setFieldValue("amountEth", val);
+                  }}
+                />
+                {values.amountEth > 0 && (
+                  <small style={{ display: "block", marginTop: "5px" }}>
+                    ≈ ${ethToUSDT} USD
+                  </small>
+                )}
+              </div>
 
               <MyInput
                 label="Your Name (optional)"
-                type="text"
-                placeholder="Your Name"
                 name="donorName"
+                type="text"
+                placeholder="Anonymous"
               />
 
-              <label>Cause, you are donating to!</label>
-              <input disabled placeholder={props.cause} />
+              <div className="form-group">
+                <label>Cause, you are donating to! </label>
+                <input
+                  type="text"
+                  className="text-input"
+                  value={cause}
+                  disabled
+                  style={{ backgroundColor: "#f0f0f0" }}
+                />
+              </div>
 
               <button
-                className={
-                  props.account !== null ? "activatedButton" : "disableButton"
-                }
-                disabled={props.account !== null ? false : true}
                 type="submit"
+                className="btn-donate"
+                disabled={loading || ! values.amountEth || values.amountEth <= 0}
+                style={{
+                  backgroundColor: loading ?  "#ccc" : "#02a95c",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  padding: "15px",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "white",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  width: "100%",
+                  marginTop: "20px",
+                }}
               >
-                <div className="btn-loader">
-                  {loading && <div className="loader"></div>}
-                  {loading ? "Donating Ethereum" : "Donate Ethereum"}
-                </div>
+                {loading ? "Processing..." : "Donate Ethereum"}
               </button>
             </Form>
-          </Formik>
-        )}
+          )}
+        </Formik>
       </div>
     </div>
   );

@@ -1,52 +1,72 @@
 import React, { useState, useEffect } from "react";
-import "./styles/App.scss";
-import HeaderNav from "./components/HeaderNav";
+import "./App.scss";
+import Navbar from "./components/NavBar"; // ← Match the actual filename casing
 import ImageDesc from "./components/ImageDesc";
+import Featured from "./components/Featured";
 import Steps from "./components/Steps";
 import Price from "./components/Price";
-import Featured from "./components/Featured";
-import Footer from "./components/Footer";
 import KickStart from "./components/KickStart";
-import { Contract, providers } from "ethers";
+import Footer from "./components/Footer";
 
 function App() {
   const [isWalletInstalled, setIsWalletInstalled] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // state for keeping track of current connected account.
-
   const [account, setAccount] = useState(null);
 
   useEffect(() => {
     if (window.ethereum) {
       setIsWalletInstalled(true);
-    } else alert("Please install metamask");
-  }, []);
 
-  //function to connect wallet
+      window.ethereum.on("accountsChanged", (accounts) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        } else {
+          setAccount(null);
+        }
+      });
+
+      window.ethereum.on("chainChanged", () => {
+        window.location.reload();
+      });
+
+      window.ethereum
+        .request({ method: "eth_accounts" })
+        .then((accounts) => {
+          if (accounts.length > 0) {
+            setAccount(accounts[0]);
+          }
+        });
+    }
+  }, []);
 
   async function connectWallet() {
     setLoading(true);
-    setTimeout(() => {
-      window.ethereum
-        .request({
-          method: "eth_requestAccounts",
-        })
-        .then((accounts) => {
-          setAccount(accounts[0]);
-        })
-        .catch((error) => {
-          alert("Something went wrong");
-        });
+
+    try {
+      if (!window.ethereum) {
+        alert("Please install MetaMask!");
+        setLoading(false);
+        return;
+      }
+
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+
+      setAccount(accounts[0]);
       setLoading(false);
-    }, 2000);
+    } catch (error) {
+      console.error("Connection error:", error);
+      alert("Failed to connect wallet");
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="App" id="expanded-connect">
-      <HeaderNav
+    <div className="App">
+      {/* Sử dụng Navbar mới thay cho HeaderNav */}
+      <Navbar
         account={account}
-        isWalletInstalled={isWalletInstalled}
         connectWallet={connectWallet}
         loading={loading}
       />

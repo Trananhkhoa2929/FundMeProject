@@ -1,111 +1,155 @@
-@use "App";
+#expanded-connect {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 100px; /* Navbar height */
+  padding-bottom: 60px;
+  position: relative;
+}
 
-.container {
-  overflow: hidden;
-
+.flex-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
   width: 100%;
-  background-color: #f8f8f8;
-  padding-top: 3rem;
-  .flex-container {
-    justify-content: space-between;
-    display: flex;
-    margin: auto;
-    padding: 4rem 0;
-    // column-gap: 50px;
-    .flex-desc {
-      // background-color: rgba(255, 255, 255, 0.8);`
-      // border: 1px solid rgba(0, 0, 0, 0.8);
-      padding: 20px 0px;
-      font-size: 30px;
-      text-align: start;
-      display: block;
-      line-height: 2em;
-      width: 50%;
-      margin: auto;
-      @include App.devices(tablet) {
-        display: block;
-        justify-content: center;
-        text-align: center;
-        width: 100%;
-      }
-      .place-you {
-        width: 310px;
-        margin: auto;
-        display: contents;
-        .green-line {
-          height: 5px;
-          width: 100px;
-          background-color: #02a95c;
-          @include App.devices(tablet) {
-            margin: -2rem auto 2rem;
-          }
-        }
-        .start-fund-button {
-          // width: 150px;
-          background-color: #02a95c;
-          color: #fff;
-          font-size: 18px;
-          border: 1px solid #02a95c;
-          border-radius: 30px;
-          padding: 10px 15px;
-          font-weight: bold;
-          letter-spacing: 0.02em;
-          display: flex;
-          gap: 3px;
-          margin-top: 3rem;
-          &:hover {
-            cursor: pointer;
-          }
-          .go-icon {
-            width: 30px;
-            // margin-top: 10px;
-          }
-          .start-btn {
-            margin-top: 5px;
-          }
-          @include App.devices(tablet) {
-            display: inline-flex;
-          }
-        }
-      }
-    }
-    .flex-image {
-      display: flex;
-      justify-content: end;
-      width: 50%;
-      .hero-img {
-        position: absolute;
-        border-radius: 30px;
-        object-fit: cover;
-        width: 44%;
-        height: 480px;
-        @include App.devices(tablet) {
-          object-fit: cover;
-          height: 300px;
-          margin: auto;
-          position: relative;
-          right: 0;
-          width: 100%;
-        }
-      }
-      @include App.devices(tablet) {
-        width: 100%;
-      }
-    }
-    @include App.devices(tablet) {
-      display: block;
-      padding: 0px;
-    }
+}
+
+.flex-desc {
+  animation: fadeInLeft 0.8s ease-out;
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
   }
-  @include App.devices(tablet) {
-    background-color: #fff;
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.flex-image {
+  animation: fadeInRight 0.8s ease-out;
+
+  .hero-img {
+    width: 100%;
+    height: auto;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .flex-container {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  #expanded-connect {
+    padding-top: 120px;
+    min-height: auto;
+  }
+
+  .slogan-flexes .slogan-flex span {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .start-fund-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.place-you {
+  > p {
+    font-size: 1.125rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+    font-weight: 500;
   }
 }
 
 .slogan-flexes {
-  display: block;
-  margin-top: -3rem;
+  margin-bottom: 2rem;
+
+  .slogan-flex {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+
+    span {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .slideGreenLine {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+  }
 }
-.slogan-flex {
-  display: inline-grid;
+
+.start-fund-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 36px;
+  background: linear-gradient(135deg, #ec4899 0%, #3b82f6 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(236, 72, 153, 0.6);
+  }
+
+  .go-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .start-btn {
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+}
+
+.hero-actions .btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e4e4e7;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.hero-actions .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }

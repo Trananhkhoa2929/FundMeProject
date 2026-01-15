@@ -1,115 +1,115 @@
-import axios from "axios";
-import { Contract, providers, utils } from "ethers";
+import { Contract, ethers, utils } from "ethers";
 import * as Yup from "yup";
-import abi from "../utils/DonateEth.json";
+import abi from "./DonateEth.json";
 
-const contractAddress = "0x871F283Cf322F0206FE6424EE01529E186270eb5";
+// Contract address on Hardhat local network
+// Nếu restart hardhat node, bạn cần deploy lại và update address này
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const contractABI = abi.abi;
-const provider = new providers.Web3Provider(window.ethereum);
 
-const getEthCurrentPrice = async () => {
-  let ethPrice = new Promise(async (resolve, reject) => {
-    try {
-      ethPrice = await axios.get(
-        "https://api.coinstats.app/public/v1/coins/ethereum"
-      );
-    } catch (ex) {
-      ethPrice = null;
-      // error
-      console.log(ex);
-      reject(ex);
-    }
-    if (ethPrice) {
-      // success
-      const json = ethPrice.data.coin.price;
-      resolve(json);
-    }
-  });
-  return ethPrice.then(function (value) {
-    return value;
-  });
+const getProvider = () => {
+  if (typeof window.ethereum !== "undefined") {
+    return new ethers.providers.Web3Provider(window.ethereum);
+  }
+  throw new Error("Please install MetaMask");
 };
 
 export const convertEthToUsdt = async (eth) => {
-  let ethConvertedToUSD = new Promise(async (resolve, reject) => {
-    try {
-      ethConvertedToUSD = (await getEthCurrentPrice()) * eth;
-    } catch (ex) {
-      ethConvertedToUSD = null;
-      // error
-      console.log(ex);
-      reject(ex);
-    }
-    if (ethConvertedToUSD) {
-      // success
-      const json = ethConvertedToUSD;
-      resolve(json);
-    }
-  });
-  return ethConvertedToUSD.then(function (value) {
-    return value.toFixed(2);
-  });
+  const ETH_PRICE = 2500; // Giá fix cứng hoặc gọi API lấy giá thật
+  const usdValue = ETH_PRICE * eth;
+  return usdValue.toFixed(2);
 };
 
 export const getBalance = async (address) => {
-  if (address !== null) {
-    let walletBalance = 0;
+  if (!address) {
+    console.log("No address provided");
+    return "0.0000";
+  }
+
+  try {
+    const provider = getProvider();
     const balance = await provider.getBalance(address);
     const balanceInEth = utils.formatEther(balance);
-    walletBalance = Number(balanceInEth).toFixed(4);
-    return walletBalance;
-  } else return "Please Connect Your Wallet";
+    const formatted = Number(balanceInEth).toFixed(4);
+    return formatted;
+  } catch (error) {
+    console.error("Error getting balance:", error);
+    return "0.0000";
+  }
+};
+
+export const getDonations = async () => {
+  try {
+    const provider = getProvider();
+    // Sử dụng provider (read-only) để lấy dữ liệu
+    const contract = new Contract(contractAddress, contractABI, provider);
+    const donations = await contract.getDonors();
+    return donations;
+  } catch (error) {
+    console.error("Error fetching donations:", error);
+    return [];
+  }
 };
 
 export const yupValidation = (balance) =>
   Yup.object().shape({
     donorName: Yup.string()
       .notRequired()
-      .max(15, "Must not exceed 15 characters ")
+      .max(15, "Must not exceed 15 characters")
       .min(3, "Must not be less than 3 characters")
-      .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed for this field "),
+      .matches(/^[aA-zZ\s]+$/, "Only alphabets are allowed"),
     amountEth: Yup.number()
-      .required("required")
-      .positive()
-      .when(
-        "balanceEth",
-        (balanceEth, Yup) =>
-          balanceEth &&
-          Yup.max(
-            balanceEth,
-            `Your Amount has to be less than or equal to ${balanceEth}`
-          )
+      .required("Amount is required")
+      .positive("Must be positive")
+      .test(
+        "max",
+        `Amount must be less than or equal to ${balance} ETH`,
+        (val) => val <= balance
       ),
   });
 
 export const donateEth = async (values, setLoading, removeModal) => {
   try {
     setLoading(true);
+
+    const provider = getProvider();
+    await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
-    const donateToACharity = new Contract(contractAddress, contractABI, signer);
-    const donationEntries = await donateToACharity.sendEthToCharity(
-      values.donorName,
-      values.charity,
-      { value: utils.parseEther(values.amountEth) }
+
+    const donateToACharity = new Contract(
+      contractAddress,
+      contractABI,
+      signer
     );
 
-    await donationEntries.wait();
-    setLoading(false);
-    alert("Donation Completed");
-  } catch (error) {
-    console.log(error);
-    setLoading(false);
-  }
-};
+    const donationTx = await donateToACharity.sendEthToCharity(
+      values.donorName || "Anonymous",
+      values.charity,
+      { value: utils.parseEther(values.amountEth.toString()) }
+    );
 
-export const getDonations = async (values) => {
-  try {
-    const signer = provider.getSigner();
-    const donateToACharity = new Contract(contractAddress, contractABI, signer);
-    const donations = await donateToACharity.getDonors();
-
-    return donations;
+    console.log("Transaction sent:", donationTx.hash);
+    
+    await donationTx.wait();
+    
+    console.log("Transaction confirmed!");
+    setLoading(false);
+    alert("✅ Donation Completed Successfully!");
+    removeModal();
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   } catch (error) {
-    console.log(error);
+    console.error("Donation error:", error);
+    setLoading(false);
+
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      alert("❌ Transaction rejected by user");
+    } else if (error.code === "INSUFFICIENT_FUNDS") {
+      alert("❌ Insufficient funds in your wallet");
+    } else {
+      alert("❌ An error occurred during donation.");
+    }
   }
 };

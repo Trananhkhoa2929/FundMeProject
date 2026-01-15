@@ -1,117 +1,65 @@
-@use "App";
-
-.kickstart-outer {
-  background-color: #f8f8f8;
-  text-align: start;
-  font-weight: 900;
-  margin: 4rem auto;
-  border-radius: 20px;
+.kickstart-section {
+  padding:  100px 0;
+  background: rgba(236, 72, 153, 0.05);
 }
 
-.kickstart-inner {
-  margin: 10px 0 10px 10px;
+.kickstart-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px;
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
   display: flex;
-  min-height: 26.625rem;
-  @include App.devices(tabmob) {
-    display: flex;
-    -webkit-flex-direction: column-reverse;
-    -ms-flex-direction: column-reverse;
-    flex-direction: column-reverse;
-    margin: 0;
-  }
-}
-
-.kickstart-text-btn {
-  -webkit-flex: 3 1;
-  -ms-flex: 3 1;
-  flex: 3 1;
-  padding-left: 2.5rem;
-  display: block;
-  align-self: center;
-  justify-self: center;
-  max-width: 600px;
-  @include App.devices(tabmob) {
-    max-width: 90%;
-    padding-left: 0;
-  }
-}
-
-.kickstart-side-image {
-  // width: 40%;
-  // flex: 2;
-  object-fit: contain;
-  // background-position: 50%;
-  // background-image: url("../images/greenMap.png");
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-  margin-left: 1rem;
-  .flower-image {
-    height: 400px;
-  }
-  @include App.devices(tabmob) {
-    display: flex;
-    justify-content: center;
-    margin-left: 0;
-    .flower-image {
-      height: 250px;
-    }
-  }
-}
-.big-title {
-  font-size: 2.5rem;
-  line-height: 1.1;
-  margin: 0 0 2rem;
-  @include App.devices(tabmob) {
-    text-align: center;
-  }
-}
-
-.btn-contain {
-  display: flex;
-  gap: 20px;
-  @include App.devices(tabmob) {
-    display: block;
-  }
-}
-.start-fund-btn {
-  font-size: 18px;
-  border-radius: 30px;
-  padding: 15px 15px;
-  font-weight: bold;
-  letter-spacing: 0.02em;
-  display: flex;
-  gap: 3px;
-  margin-top: 3rem;
-  width: 200px;
-  justify-content: center;
-  &:hover {
-    cursor: pointer;
-  }
-}
-
-.tablet-btn-full {
-  @include App.devices(tabmob) {
-    width: 100%;
-  }
-}
-
-.tablet-btn-div {
-  display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-}
-.tablet-btn {
-  @include App.devices(tabmob) {
-    margin-top: 1rem;
-    border: none;
-    background-color: #f8f8f8;
-    font-size: 14px;
-  }
+  gap: 40px;
 }
 
-.tablet-btn-icon {
-  display: none;
-  @include App.devices(tabmob) {
-    display: block;
+.kickstart-content h2 {
+  font-size: 42px;
+  font-weight:  900;
+  color: #fff;
+  margin-bottom:  16px;
+}
+
+.kickstart-content p {
+  font-size: 18px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+.kickstart-actions .btn {
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border:  none;
+  background: linear-gradient(135deg, #ec4899 0%, #3b82f6 100%);
+  color: white;
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
+}
+
+.kickstart-actions .btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.6);
+}
+
+@media (max-width: 1024px) {
+  .kickstart-container {
+    flex-direction: column;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .kickstart-content h2 {
+    font-size: 32px;
+  }
+
+  .kickstart-actions .btn {
+    width: 100%;
   }
 }
